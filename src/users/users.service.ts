@@ -17,19 +17,21 @@ export class UsersService {
   }
 
   async findAll() {
-    return this.repo.find();
+    // Solo campos públicos, sin password
+    return this.repo.find({
+      select: ['id', 'email', 'role', 'name'],
+    });
   }
+
   async findById(id: number) {
-  return this.repo.findOne({ where: { id } });
-}
+    return this.repo.findOne({ where: { id } });
+  }
 
-async update(id: number, data: Partial<User>) {
-  const user = await this.findById(id);
-  if (!user) throw new Error('Usuario no encontrado');
+  async update(id: number, data: Partial<User>) {
+    const user = await this.findById(id);
+    if (!user) throw new Error('Usuario no encontrado');
 
-  Object.assign(user, data);
-  return this.repo.save(user);
-}
-
-
+    Object.assign(user, data);
+    return this.repo.save(user);
+  }
 }
