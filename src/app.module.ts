@@ -10,6 +10,7 @@ import { NewsModule } from './news/news.module';
 import { StandingsModule } from './standings/standings.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserPreferencesModule } from './user-preferences/user-preferences.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { UserPreferencesModule } from './user-preferences/user-preferences.modul
     NewsModule,
     StandingsModule,
     UserPreferencesModule,
+    AdminModule,
   ],
 })
 export class AppModule {}
