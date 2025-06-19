@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard) // protege todas las rutas con JWT
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -22,3 +22,4 @@ export class UsersController {
     return this.usersService.findAll();
   }
 }
+

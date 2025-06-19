@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -17,7 +18,6 @@ export class UsersService {
   }
 
   async findAll() {
-    // Solo campos públicos, sin password
     return this.repo.find({
       select: ['id', 'email', 'role', 'name'],
     });
@@ -30,6 +30,18 @@ export class UsersService {
   async update(id: number, data: Partial<User>) {
     const user = await this.findById(id);
     if (!user) throw new Error('Usuario no encontrado');
+
+    // Verificar si se cambia el email y si ya está en uso
+    if (data.email && data.email !== user.email) {
+      const existingUser = await this.findByEmail(data.email);
+      if (existingUser && existingUser.id !== id) {
+        throw new BadRequestException('El correo ya está en uso');
+      }
+    }
+
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
 
     Object.assign(user, data);
     return this.repo.save(user);
