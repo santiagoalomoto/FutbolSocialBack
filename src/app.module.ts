@@ -8,6 +8,8 @@ import { RefereesModule } from './referees/referees.module';
 import { MatchesModule } from './matches/matches.module';
 import { NewsModule } from './news/news.module';
 import { StandingsModule } from './standings/standings.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { UserPreferencesModule } from './user-preferences/user-preferences.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { StandingsModule } from './standings/standings.module';
       synchronize: true,
       autoLoadEntities: true,
     }),
+
+    MongooseModule.forRoot('mongodb://localhost:27017/futbol-mongo'),
     AuthModule,
     UsersModule,
     TeamsModule,
@@ -29,6 +33,7 @@ import { StandingsModule } from './standings/standings.module';
     MatchesModule,
     NewsModule,
     StandingsModule,
+    UserPreferencesModule,
   ],
 })
 export class AppModule {}
