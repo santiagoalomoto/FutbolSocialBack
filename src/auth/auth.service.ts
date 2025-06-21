@@ -2,6 +2,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -10,26 +12,23 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  async register(data) {
+  async register(data: RegisterDto) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await this.usersService.create({
       ...data,
       password: hashedPassword,
     });
-    // Login con datos originales para obtener token
     return this.login({ email: data.email, password: data.password });
   }
 
-  async login(userData) {
-    const user = await this.usersService.findByEmail(userData.email);
+  async login(data: LoginDto) {
+    const user = await this.usersService.findByEmail(data.email);
     if (!user) throw new UnauthorizedException('Email no registrado');
 
-    const isMatch = await bcrypt.compare(userData.password, user.password);
+    const isMatch = await bcrypt.compare(data.password, user.password);
     if (!isMatch) throw new UnauthorizedException('Contraseña incorrecta');
 
-    // Usamos 'sub' como campo estándar para el ID en el JWT
     const payload = { sub: user.id, email: user.email, role: user.role };
-
     return {
       access_token: this.jwtService.sign(payload),
       user: payload,

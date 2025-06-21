@@ -35,5 +35,5 @@ export class Standing {
   points: number;
 
   @Column({ nullable: true })
-  position: number; // Opcional, si quieres establecer posición explícitamente
+  position: number;
 }

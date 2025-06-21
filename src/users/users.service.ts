@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -13,25 +13,24 @@ export class UsersService {
     return this.repo.save(user);
   }
 
-  async findByEmail(email: string) {
+  findByEmail(email: string) {
     return this.repo.findOne({ where: { email } });
   }
 
-  async findAll() {
+  findAll() {
     return this.repo.find({
       select: ['id', 'email', 'role', 'name'],
     });
   }
 
-  async findById(id: number) {
+  findById(id: number) {
     return this.repo.findOne({ where: { id } });
   }
 
   async update(id: number, data: Partial<User>) {
     const user = await this.findById(id);
-    if (!user) throw new Error('Usuario no encontrado');
+    if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    // Verificar si se cambia el email y si ya está en uso
     if (data.email && data.email !== user.email) {
       const existingUser = await this.findByEmail(data.email);
       if (existingUser && existingUser.id !== id) {

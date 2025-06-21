@@ -11,9 +11,9 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ default: 'user' }) // user, admin, editor
+  @Column({ default: 'user' })
   role: string;
 
-  @Column({ nullable: true }) // NUEVO: campo editable
+  @Column({ nullable: true })
   name: string;
 }

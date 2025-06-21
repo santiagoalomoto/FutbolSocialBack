@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
+import { AdminController } from './admin.controller';
 
 import { User } from '../users/user.entity';
 import { Player } from '../players/player.entity';
@@ -12,8 +12,10 @@ import { Referee } from '../referees/referee.entity';
 import { News } from '../news/news.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Player, Team, Match, Referee, News])],
-  controllers: [AdminController],
+  imports: [
+    TypeOrmModule.forFeature([User, Player, Team, Match, Referee, News]),
+  ],
   providers: [AdminService],
+  controllers: [AdminController],
 })
 export class AdminModule {}

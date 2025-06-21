@@ -13,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     return {
-      id: payload.id || payload.sub, // asegura que req.user.id esté disponible
+      userId: payload.id || payload.sub, // 👈 este nombre debe coincidir con el del controller
       email: payload.email,
       role: payload.role,
     };

@@ -7,7 +7,7 @@ export class Match {
   id: number;
 
   @Column()
-  league: string; // Ej: "Primera División"
+  league: string;
 
   @Column({ type: 'date' })
   date: string;
@@ -15,7 +15,7 @@ export class Match {
   @Column({ type: 'time' })
   time: string;
 
-  @Column({ default: 'Programado' }) // "En Vivo", "Finalizado"
+  @Column({ default: 'Programado' })
   status: string;
 
   @ManyToOne(() => Team, { nullable: true, onDelete: 'SET NULL' })

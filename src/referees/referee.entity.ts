@@ -17,8 +17,8 @@ export class Referee {
   @Column()
   gender: string;
 
-  @Column("text", { array: true }) // Ej: ["principal", "asistente"]
-  roles: string[];
+  @Column('text', { array: true })
+  roles: string[]; // Ej: ['principal', 'asistente']
 
   @Column({ default: 0 })
   yellow_cards: number;

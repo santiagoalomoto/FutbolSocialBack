@@ -20,37 +20,50 @@ export class AdminService {
     @InjectRepository(News) private newsRepo: Repository<News>,
   ) {}
 
-  async getDashboardStats() {
-    const totalUsers = await this.userRepo.count();
-    const totalPlayers = await this.playerRepo.count();
-    const totalTeams = await this.teamRepo.count();
-    const totalMatches = await this.matchRepo.count();
-    const totalReferees = await this.refereeRepo.count();
-    const totalNews = await this.newsRepo.count();
+ async getDashboardData() {
+  const totals = {
+    users: await this.userRepo.count(),
+    players: await this.playerRepo.count(),
+    teams: await this.teamRepo.count(),
+    matches: await this.matchRepo.count(),
+    referees: await this.refereeRepo.count(),
+    news: await this.newsRepo.count(),
+  };
 
-    const recentUsers = await this.userRepo.find({
-      order: { id: 'DESC' },
-      take: 5,
-    });
+  const recentUsers = await this.userRepo.find({
+    order: { id: 'DESC' },
+    take: 5,
+    select: ['id', 'email'],
+  });
 
-    const recentMatches = await this.matchRepo.find({
-      order: { date: 'DESC' },
-      take: 5,
-    });
+  const recentMatches = await this.matchRepo.find({
+    order: { date: 'DESC' },
+    take: 5,
+    relations: ['team1', 'team2'],
+    select: ['id', 'date', 'league', 'status', 'team1', 'team2'],
+  });
 
-    return {
-      totals: {
-        users: totalUsers,
-        players: totalPlayers,
-        teams: totalTeams,
-        matches: totalMatches,
-        referees: totalReferees,
-        news: totalNews,
-      },
-      recent: {
-        users: recentUsers,
-        matches: recentMatches,
-      },
-    };
-  }
+  const recentReferees = await this.refereeRepo.find({
+    order: { id: 'DESC' },
+    take: 5,
+    select: ['id', 'name'],
+  });
+
+  const recentNews = await this.newsRepo.find({
+    order: { date: 'DESC' },
+    take: 5,
+    select: ['id', 'title', 'date'],
+  });
+
+  return {
+    totals,
+    recent: {
+      users: recentUsers,
+      matches: recentMatches,
+      referees: recentReferees,
+      news: recentNews,
+    },
+  };
+}
+
 }
