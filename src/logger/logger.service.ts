@@ -21,9 +21,11 @@ export class LoggerService implements NestLoggerService {
   }
 
   private formatMessage(message: any, optionalParams: any[]): string {
+    const now = new Date();
+    const timestamp = now.toISOString();
     if (optionalParams.length) {
-      return `${message} ${optionalParams.map(param => JSON.stringify(param)).join(' ')}`;
+      return `${timestamp} ${message} ${optionalParams.map(param => JSON.stringify(param)).join(' ')}`;
     }
-    return message;
+    return `${timestamp} ${message}`;
   }
 }

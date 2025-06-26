@@ -11,5 +11,5 @@ export const getTypeOrmConfig = async (
   password: configService.get<string>('POSTGRES_PASSWORD'),
   database: configService.get<string>('POSTGRES_DB'),
   autoLoadEntities: true,
-  synchronize: true,
+  synchronize: process.env.NODE_ENV !== 'production', // Solo sincroniza en desarrollo
 });

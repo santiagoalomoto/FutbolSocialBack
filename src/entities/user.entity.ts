@@ -6,7 +6,10 @@ export class User {
   id: number;
 
   @Column({ unique: true })
-  email: string;
+  emailHash: string;
+
+  @Column()
+  email: string; // email cifrado
 
   @Column()
   password: string;

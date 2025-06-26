@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { CryptoService } from '../../shared/crypto.service';
 import { LoggerService } from '../../logger/logger.service'; // importa LoggerService
 
 @Injectable()
@@ -16,48 +17,77 @@ export class UsersService {
 
   async create(data: Partial<User>) {
     this.logger.log('Creating a new user');
-    const user = this.repo.create(data);
+    // Cifrar los campos excepto id
+    const user = this.repo.create({
+      ...data,
+      emailHash: data.email ? CryptoService.hash(data.email) : undefined,
+      email: data.email ? CryptoService.encrypt(data.email) : undefined,
+      password: data.password ? await bcrypt.hash(data.password, 10) : undefined,
+      role: data.role ? CryptoService.encrypt(data.role) : undefined,
+      name: data.name ? CryptoService.encrypt(data.name) : undefined,
+    });
     return this.repo.save(user);
   }
 
-  findByEmail(email: string) {
+  async findByEmail(email: string) {
     this.logger.log(`Finding user by email: ${email}`);
-    return this.repo.findOne({ where: { email } });
+    // Buscar por hash de email
+    const emailHash = CryptoService.hash(email);
+    const user = await this.repo.findOne({ where: { emailHash } });
+    return user ? this.decryptUser(user) : null;
   }
 
-  findAll() {
+  async findAll() {
     this.logger.log('Retrieving all users');
-    return this.repo.find({
-      select: ['id', 'email', 'role', 'name'],
-    });
+    const users = await this.repo.find();
+    return users.map(u => this.decryptUser(u));
   }
 
-  findById(id: number) {
+  async findById(id: number) {
     this.logger.log(`Finding user by id: ${id}`);
-    return this.repo.findOne({ where: { id } });
+    const user = await this.repo.findOne({ where: { id } });
+    return user ? this.decryptUser(user) : null;
   }
 
   async update(id: number, data: Partial<User>) {
     this.logger.log(`Updating user with id: ${id}`);
-    const user = await this.findById(id);
+    const user = await this.repo.findOne({ where: { id } });
     if (!user) {
       this.logger.warn(`User with id ${id} not found`);
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    if (data.email && data.email !== user.email) {
-      const existingUser = await this.findByEmail(data.email);
-      if (existingUser && existingUser.id !== id) {
-        this.logger.warn(`Email ${data.email} is already in use`);
-        throw new BadRequestException('El correo ya está en uso');
-      }
+    // Si se actualiza el email, cifrarlo
+    if (data.email) {
+      data.emailHash = CryptoService.hash(data.email);
+      data.email = CryptoService.encrypt(data.email);
     }
-
+    // Si se actualiza el password, hashearlo
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
     }
+    // Si se actualiza el role, cifrarlo
+    if (data.role) {
+      data.role = CryptoService.encrypt(data.role);
+    }
+    // Si se actualiza el name, cifrarlo
+    if (data.name) {
+      data.name = CryptoService.encrypt(data.name);
+    }
 
     Object.assign(user, data);
-    return this.repo.save(user);
+    const updated = await this.repo.save(user);
+    return this.decryptUser(updated);
+  }
+
+  // Método para descifrar los campos del usuario
+  private decryptUser(user: User): any {
+    return {
+      ...user,
+      email: user.email ? CryptoService.decrypt(user.email) : undefined,
+      role: user.role ? CryptoService.decrypt(user.role) : undefined,
+      name: user.name ? CryptoService.decrypt(user.name) : undefined,
+      // password no se descifra nunca
+    };
   }
 }
