@@ -13,15 +13,17 @@ export class MatchesService {
     private readonly logger: LoggerService, // inyecta LoggerService
   ) {}
 
-  create(data: Partial<Match>) {
+  async create(data: Partial<Match>) {
     this.logger.log('Creating a new match');
     const match = this.repo.create(data);
-    return this.repo.save(match);
+    const saved = await this.repo.save(match);
+    return this.toResponseDto(saved);
   }
 
-  findAll() {
+  async findAll() {
     this.logger.log('Retrieving all matches');
-    return this.repo.find({ relations: ['team1', 'team2'] });
+    const matches = await this.repo.find({ relations: ['team1', 'team2'] });
+    return matches.map(m => this.toResponseDto(m));
   }
 
   async findOne(id: number) {
@@ -31,19 +33,43 @@ export class MatchesService {
       this.logger.warn(`Match with id ${id} not found`);
       throw new NotFoundException('Partido no encontrado');
     }
-    return match;
+    return this.toResponseDto(match);
   }
 
   async update(id: number, data: Partial<Match>) {
     this.logger.log(`Updating match with id: ${id}`);
-    const match = await this.findOne(id);
+    const match = await this.repo.findOne({ where: { id }, relations: ['team1', 'team2'] });
+    if (!match) {
+      this.logger.warn(`Match with id ${id} not found`);
+      throw new NotFoundException('Partido no encontrado');
+    }
     Object.assign(match, data);
-    return this.repo.save(match);
+    const updated = await this.repo.save(match);
+    return this.toResponseDto(updated);
   }
 
   async delete(id: number) {
     this.logger.log(`Deleting match with id: ${id}`);
-    const match = await this.findOne(id);
-    return this.repo.remove(match);
+    const match = await this.repo.findOne({ where: { id }, relations: ['team1', 'team2'] });
+    if (!match) {
+      this.logger.warn(`Match with id ${id} not found`);
+      throw new NotFoundException('Partido no encontrado');
+    }
+    await this.repo.remove(match);
+    return this.toResponseDto(match);
+  }
+
+  private toResponseDto(match: Match) {
+    return {
+      id: match.id,
+      league: match.league,
+      date: match.date,
+      time: match.time,
+      status: match.status,
+      team1: match.team1 ? match.team1.id : undefined,
+      team2: match.team2 ? match.team2.id : undefined,
+      score_team1: match.score_team1,
+      score_team2: match.score_team2,
+    };
   }
 }

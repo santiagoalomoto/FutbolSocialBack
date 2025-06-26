@@ -15,6 +15,7 @@ export class AuthService {
     private readonly logger: LoggerService, // inyecta LoggerService
   ) {}
 
+
   async register(data: RegisterDto) {
     this.logger.log(`Registering user with email: ${data.email}`);
     // El usersService.create ya cifra los campos, solo hasheamos password aquí por seguridad
@@ -34,17 +35,24 @@ export class AuthService {
       throw new UnauthorizedException('Email no registrado');
     }
 
-    const isMatch = await bcrypt.compare(data.password, user.password);
+    // user.password no está en el DTO, así que buscamos el usuario real para comparar
+    const userEntity = await this.usersService['repo'].findOne({ where: { id: user.id } });
+    if (!userEntity) {
+      this.logger.warn(`Login failed: User entity not found for email - ${data.email}`);
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    const isMatch = await bcrypt.compare(data.password, userEntity.password);
     if (!isMatch) {
       this.logger.warn(`Login failed: Incorrect password for email - ${data.email}`);
       throw new UnauthorizedException('Contraseña incorrecta');
     }
 
     // El usersService.findByEmail ya descifra los campos
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = { id: user.id, email: user.email, role: user.role, name: user.name };
     this.logger.log(`User logged in successfully: ${data.email}`);
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign({ sub: user.id, email: user.email, role: user.role }),
       user: payload,
     };
   }

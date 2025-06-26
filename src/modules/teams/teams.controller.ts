@@ -3,7 +3,10 @@ import { TeamsService } from './teams.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { ApiTags, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import { TeamResponseDto } from './dto/team-response.dto';
 
+@ApiTags('teams')
 @Controller('teams')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class TeamsController {
@@ -11,29 +14,39 @@ export class TeamsController {
 
   @Roles('admin', 'editor')
   @Post()
-  create(@Body() body) {
+  @ApiBearerAuth()
+  @ApiResponse({ status: 201, type: TeamResponseDto })
+  create(@Body() body): Promise<TeamResponseDto> {
     return this.service.create(body);
   }
 
   @Get()
-  findAll() {
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, type: [TeamResponseDto] })
+  findAll(): Promise<TeamResponseDto[]> {
     return this.service.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, type: TeamResponseDto })
+  findOne(@Param('id') id: number): Promise<TeamResponseDto> {
     return this.service.findOne(id);
   }
 
   @Roles('admin', 'editor')
   @Put(':id')
-  update(@Param('id') id: number, @Body() body) {
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, type: TeamResponseDto })
+  update(@Param('id') id: number, @Body() body): Promise<TeamResponseDto> {
     return this.service.update(id, body);
   }
 
   @Roles('admin')
   @Delete(':id')
-  delete(@Param('id') id: number) {
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, type: TeamResponseDto })
+  delete(@Param('id') id: number): Promise<TeamResponseDto> {
     return this.service.delete(id);
   }
 }

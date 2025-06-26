@@ -26,7 +26,8 @@ export class UsersService {
       role: data.role ? CryptoService.encrypt(data.role) : undefined,
       name: data.name ? CryptoService.encrypt(data.name) : undefined,
     });
-    return this.repo.save(user);
+    const saved = await this.repo.save(user);
+    return this.toResponseDto(this.decryptUser(saved));
   }
 
   async findByEmail(email: string) {
@@ -34,19 +35,19 @@ export class UsersService {
     // Buscar por hash de email
     const emailHash = CryptoService.hash(email);
     const user = await this.repo.findOne({ where: { emailHash } });
-    return user ? this.decryptUser(user) : null;
+    return user ? this.toResponseDto(this.decryptUser(user)) : null;
   }
 
   async findAll() {
     this.logger.log('Retrieving all users');
     const users = await this.repo.find();
-    return users.map(u => this.decryptUser(u));
+    return users.map(u => this.toResponseDto(this.decryptUser(u)));
   }
 
   async findById(id: number) {
     this.logger.log(`Finding user by id: ${id}`);
     const user = await this.repo.findOne({ where: { id } });
-    return user ? this.decryptUser(user) : null;
+    return user ? this.toResponseDto(this.decryptUser(user)) : null;
   }
 
   async update(id: number, data: Partial<User>) {
@@ -77,7 +78,7 @@ export class UsersService {
 
     Object.assign(user, data);
     const updated = await this.repo.save(user);
-    return this.decryptUser(updated);
+    return this.toResponseDto(this.decryptUser(updated));
   }
 
   // Método para descifrar los campos del usuario
@@ -88,6 +89,15 @@ export class UsersService {
       role: user.role ? CryptoService.decrypt(user.role) : undefined,
       name: user.name ? CryptoService.decrypt(user.name) : undefined,
       // password no se descifra nunca
+    };
+  }
+
+  private toResponseDto(user: any): any {
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
     };
   }
 }

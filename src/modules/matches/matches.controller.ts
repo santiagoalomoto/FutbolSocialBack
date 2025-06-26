@@ -12,7 +12,10 @@ import { MatchesService } from './matches.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { ApiTags, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import { MatchResponseDto } from './dto/match-response.dto';
 
+@ApiTags('matches')
 @Controller('matches')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class MatchesController {
@@ -20,29 +23,39 @@ export class MatchesController {
 
   @Roles('admin', 'editor')
   @Post()
-  create(@Body() body) {
+  @ApiBearerAuth()
+  @ApiResponse({ status: 201, type: MatchResponseDto })
+  create(@Body() body): Promise<MatchResponseDto> {
     return this.service.create(body);
   }
 
   @Get()
-  findAll() {
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, type: [MatchResponseDto] })
+  findAll(): Promise<MatchResponseDto[]> {
     return this.service.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, type: MatchResponseDto })
+  findOne(@Param('id') id: number): Promise<MatchResponseDto> {
     return this.service.findOne(id);
   }
 
   @Roles('admin', 'editor')
   @Put(':id')
-  update(@Param('id') id: number, @Body() body) {
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, type: MatchResponseDto })
+  update(@Param('id') id: number, @Body() body): Promise<MatchResponseDto> {
     return this.service.update(id, body);
   }
 
   @Roles('admin')
   @Delete(':id')
-  delete(@Param('id') id: number) {
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, type: MatchResponseDto })
+  delete(@Param('id') id: number): Promise<MatchResponseDto> {
     return this.service.delete(id);
   }
 }

@@ -13,15 +13,17 @@ export class NewsService {
     private readonly logger: LoggerService, // inyecta LoggerService
   ) {}
 
-  create(data: Partial<News>) {
+  async create(data: Partial<News>) {
     this.logger.log('Creating a new news item');
     const noticia = this.repo.create(data);
-    return this.repo.save(noticia);
+    const saved = await this.repo.save(noticia);
+    return this.toResponseDto(saved);
   }
 
-  findAll() {
+  async findAll() {
     this.logger.log('Retrieving all news items');
-    return this.repo.find({ relations: ['match'], order: { date: 'DESC' } });
+    const news = await this.repo.find({ relations: ['match'], order: { date: 'DESC' } });
+    return news.map(n => this.toResponseDto(n));
   }
 
   async findOne(id: number) {
@@ -31,19 +33,40 @@ export class NewsService {
       this.logger.warn(`News item with id ${id} not found`);
       throw new NotFoundException('Noticia no encontrada');
     }
-    return noticia;
+    return this.toResponseDto(noticia);
   }
 
   async update(id: number, data: Partial<News>) {
     this.logger.log(`Updating news item with id: ${id}`);
-    const noticia = await this.findOne(id);
+    const noticia = await this.repo.findOne({ where: { id }, relations: ['match'] });
+    if (!noticia) {
+      this.logger.warn(`News item with id ${id} not found`);
+      throw new NotFoundException('Noticia no encontrada');
+    }
     Object.assign(noticia, data);
-    return this.repo.save(noticia);
+    const updated = await this.repo.save(noticia);
+    return this.toResponseDto(updated);
   }
 
   async delete(id: number) {
     this.logger.log(`Deleting news item with id: ${id}`);
-    const noticia = await this.findOne(id);
-    return this.repo.remove(noticia);
+    const noticia = await this.repo.findOne({ where: { id }, relations: ['match'] });
+    if (!noticia) {
+      this.logger.warn(`News item with id ${id} not found`);
+      throw new NotFoundException('Noticia no encontrada');
+    }
+    await this.repo.remove(noticia);
+    return this.toResponseDto(noticia);
+  }
+
+  private toResponseDto(news: News) {
+    return {
+      id: news.id,
+      title: news.title,
+      description: news.description,
+      image_url: news.image_url,
+      date: news.date,
+      match: news.match ? news.match.id : undefined,
+    };
   }
 }

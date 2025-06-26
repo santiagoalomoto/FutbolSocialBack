@@ -1,8 +1,10 @@
+
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserPreferences } from './user-preferences.schema';
-import { LoggerService } from '../../logger/logger.service'; // importa LoggerService
+import { LoggerService } from '../../logger/logger.service';
+import { UserPreferencesResponseDto } from './dto/user-preferences-response.dto';
 
 @Injectable()
 export class UserPreferencesService {
@@ -13,22 +15,33 @@ export class UserPreferencesService {
     private readonly logger: LoggerService, // inyecta LoggerService
   ) {}
 
-  create(data: Partial<UserPreferences>) {
+
+  async create(data: Partial<UserPreferences>): Promise<UserPreferencesResponseDto> {
     this.logger.log('Creating user preferences');
-    return this.model.create(data);
+    const created = await this.model.create(data);
+    return this.toResponseDto(created);
   }
 
-  findByUserId(userId: string) {
+
+  async findByUserId(userId: string): Promise<UserPreferencesResponseDto> {
     this.logger.log(`Finding user preferences for userId: ${userId}`);
-    return this.model.findOne({ userId }).exec();
+    const found = await this.model.findOne({ userId }).exec();
+    return found ? this.toResponseDto(found) : ({} as UserPreferencesResponseDto);
   }
 
-  updateByUserId(userId: string, data: Partial<UserPreferences>) {
+
+  async updateByUserId(userId: string, data: Partial<UserPreferences>): Promise<UserPreferencesResponseDto> {
     this.logger.log(`Updating user preferences for userId: ${userId}`);
-    return this.model.findOneAndUpdate(
+    const updated = await this.model.findOneAndUpdate(
       { userId },
       data,
       { new: true, upsert: true }
     ).exec();
+    return this.toResponseDto(updated);
+  }
+
+  private toResponseDto(pref: UserPreferences): UserPreferencesResponseDto {
+    const { userId, theme, color, font, backgroundImage } = pref;
+    return { userId, theme, color, font, backgroundImage };
   }
 }

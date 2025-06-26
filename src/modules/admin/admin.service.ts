@@ -34,30 +34,41 @@ export class AdminService {
       news: await this.newsRepo.count(),
     };
 
-    const recentUsers = await this.userRepo.find({
+    const recentUsers = (await this.userRepo.find({
       order: { id: 'DESC' },
       take: 5,
       select: ['id', 'email'],
-    });
+    })).map(u => ({ id: u.id, email: u.email }));
 
-    const recentMatches = await this.matchRepo.find({
+    const recentMatches = (await this.matchRepo.find({
       order: { date: 'DESC' },
       take: 5,
       relations: ['team1', 'team2'],
       select: ['id', 'date', 'league', 'status', 'team1', 'team2'],
-    });
+    })).map(m => ({
+      id: m.id,
+      date: (m.date && Object.prototype.toString.call(m.date) === '[object Date]') ? (m.date as unknown as Date).toISOString() : m.date,
+      league: m.league,
+      status: m.status,
+      team1: m.team1,
+      team2: m.team2,
+    }));
 
-    const recentReferees = await this.refereeRepo.find({
+    const recentReferees = (await this.refereeRepo.find({
       order: { id: 'DESC' },
       take: 5,
       select: ['id', 'name'],
-    });
+    })).map(r => ({ id: r.id, name: r.name }));
 
-    const recentNews = await this.newsRepo.find({
+    const recentNews = (await this.newsRepo.find({
       order: { date: 'DESC' },
       take: 5,
       select: ['id', 'title', 'date'],
-    });
+    })).map(n => ({
+      id: n.id,
+      title: n.title,
+      date: (n.date && Object.prototype.toString.call(n.date) === '[object Date]') ? (n.date as unknown as Date).toISOString() : String(n.date),
+    }));
 
     return {
       totals,

@@ -8,41 +8,56 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+
 import { RefereesService } from './referees.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { RefereeResponseDto } from './dto/referee-response.dto';
 
+@ApiTags('referees')
+@ApiBearerAuth()
 @Controller('referees')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RefereesController {
   constructor(private readonly service: RefereesService) {}
 
+
   @Roles('admin', 'editor')
   @Post()
-  create(@Body() body) {
+  @ApiResponse({ status: 201, type: RefereeResponseDto })
+  create(@Body() body): Promise<RefereeResponseDto> {
     return this.service.create(body);
   }
 
+
   @Get()
-  findAll() {
+  @ApiResponse({ status: 200, type: [RefereeResponseDto] })
+  findAll(): Promise<RefereeResponseDto[]> {
     return this.service.findAll();
   }
 
+
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  @ApiResponse({ status: 200, type: RefereeResponseDto })
+  findOne(@Param('id') id: number): Promise<RefereeResponseDto> {
     return this.service.findOne(id);
   }
 
+
   @Roles('admin', 'editor')
   @Put(':id')
-  update(@Param('id') id: number, @Body() body) {
+  @ApiResponse({ status: 200, type: RefereeResponseDto })
+  update(@Param('id') id: number, @Body() body): Promise<RefereeResponseDto> {
     return this.service.update(id, body);
   }
 
+
   @Roles('admin')
   @Delete(':id')
-  delete(@Param('id') id: number) {
+  @ApiResponse({ status: 200, type: RefereeResponseDto })
+  delete(@Param('id') id: number): Promise<RefereeResponseDto> {
     return this.service.delete(id);
   }
 }
