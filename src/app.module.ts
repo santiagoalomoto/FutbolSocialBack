@@ -1,31 +1,30 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { TeamsModule } from './teams/teams.module';
-import { PlayersModule } from './players/players.module';
-import { RefereesModule } from './referees/referees.module';
-import { MatchesModule } from './matches/matches.module';
-import { NewsModule } from './news/news.module';
-import { StandingsModule } from './standings/standings.module';
-import { MongooseModule } from '@nestjs/mongoose';
-import { UserPreferencesModule } from './user-preferences/user-preferences.module';
-import { AdminModule } from './admin/admin.module';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './config/env.config';
+
+import { LoggerModule } from './logger/logger.module';
+import { MorganMiddleware } from './middleware/morgan.middleware';
+
+import { DatabaseModule } from './database/database.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { TeamsModule } from './modules/teams/teams.module';
+import { PlayersModule } from './modules/players/players.module';
+import { RefereesModule } from './modules/referees/referees.module';
+import { MatchesModule } from './modules/matches/matches.module';
+import { NewsModule } from './modules/news/news.module';
+import { StandingsModule } from './modules/standings/standings.module';
+import { UserPreferencesModule } from './modules/user-preferences/user-preferences.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: '12345',
-      database: 'futbol',
-      synchronize: true,
-      autoLoadEntities: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
     }),
-
-    MongooseModule.forRoot('mongodb://localhost:27017/futbol-mongo'),
+    LoggerModule,
+    DatabaseModule,
     AuthModule,
     UsersModule,
     TeamsModule,
@@ -38,6 +37,8 @@ import { AdminModule } from './admin/admin.module';
     AdminModule,
   ],
 })
-export class AppModule {}
-
-
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(MorganMiddleware).forRoutes('*');
+  }
+}
