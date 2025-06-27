@@ -64,7 +64,14 @@ export class PlayersService {
       id: player.id,
       name: player.name,
       photo_url: player.photo_url,
-      team: player.team ? player.team.id : undefined,
+      team: player.team
+      ? {
+          id: player.team.id,
+          name: player.team.name,
+          logo_url: player.team.logo_url,
+          division: player.team.division,
+        }
+      : null,
       position: player.position,
       number: player.number,
       goals: player.goals,

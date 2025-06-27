@@ -1,5 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+class TeamDto {
+  @ApiProperty()
+  id: number;
+
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  logo_url: string;
+
+  @ApiProperty()
+  division: string;
+}
+
 export class PlayerResponseDto {
   @ApiProperty()
   id: number;
@@ -7,11 +21,11 @@ export class PlayerResponseDto {
   @ApiProperty()
   name: string;
 
-  @ApiProperty({ required: false })
-  photo_url?: string;
+  @ApiProperty()
+  photo_url: string;
 
-  @ApiProperty({ type: () => Number, required: false })
-  team?: number;
+  @ApiProperty({ type: TeamDto, nullable: true })
+  team: TeamDto | null;
 
   @ApiProperty()
   position: string;
