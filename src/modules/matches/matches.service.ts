@@ -11,7 +11,7 @@ export class MatchesService {
     private repo: Repository<Match>,
 
     private readonly logger: LoggerService, // inyecta LoggerService
-  ) {}
+  ) { }
 
   async create(data: Partial<Match>) {
     this.logger.log('Creating a new match');
@@ -66,8 +66,12 @@ export class MatchesService {
       date: match.date,
       time: match.time,
       status: match.status,
-      team1: match.team1 ? match.team1.id : undefined,
-      team2: match.team2 ? match.team2.id : undefined,
+      team1: match.team1
+        ? { id: match.team1.id, name: match.team1.name }
+        : undefined,
+      team2: match.team2
+        ? { id: match.team2.id, name: match.team2.name }
+        : undefined,
       score_team1: match.score_team1,
       score_team2: match.score_team2,
     };

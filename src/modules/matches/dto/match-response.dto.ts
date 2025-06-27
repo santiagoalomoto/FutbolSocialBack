@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+class TeamBasicInfo {
+  @ApiProperty()
+  id: number;
+
+  @ApiProperty()
+  name: string;
+}
+
 export class MatchResponseDto {
   @ApiProperty()
   id: number;
@@ -16,11 +24,11 @@ export class MatchResponseDto {
   @ApiProperty()
   status: string;
 
-  @ApiProperty({ required: false })
-  team1?: number;
+  @ApiProperty({ required: false, type: () => TeamBasicInfo })
+  team1?: TeamBasicInfo;
 
-  @ApiProperty({ required: false })
-  team2?: number;
+  @ApiProperty({ required: false, type: () => TeamBasicInfo })
+  team2?: TeamBasicInfo;
 
   @ApiProperty()
   score_team1: number;
